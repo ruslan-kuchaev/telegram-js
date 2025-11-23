@@ -1,101 +1,11 @@
-import {
-  pgTable,
-  serial,
-  text,
-  integer,
-  timestamp,
-  boolean,
-  json,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-
-// ==================== ТАБЛИЦЫ ====================
-
-// Пользователи
-export const users = pgTable(
-  "users",
-  {
-    id: serial("id").primaryKey(),
-    telegramId: text("telegram_id").notNull().unique(),
-    username: text("username"),
-    languageCode: text("language_code").default("ru"),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
-  },
-  (table) => {
-    return {
-      telegramIdIdx: uniqueIndex("telegram_id_idx").on(table.telegramId),
-    };
-  }
-);
-
-// Каталоги (папки)
-export const catalogs = pgTable("catalogs", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  emoji: text("emoji").default("📁"),
-  color: text("color").default("#3B82F6"), // hex цвет для веб-интерфейса
-  parentId: integer("parent_id"), // для вложенных каталогов
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  position: integer("position").default(0), // порядок сортировки
-  isArchived: boolean("is_archived").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Заметки
-export const notes = pgTable("notes", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content"), // текстовое содержимое
-  type: text("type").notNull().default("text"), // 'text', 'image', 'telegram_post', 'mixed'
-  telegramPostId: text("telegram_post_id"), // ID оригинального поста в Telegram
-  telegramPostUrl: text("telegram_post_url"), // URL телеграм поста
-  imageUrl: text("image_url"), // URL картинки
-  fileUrl: text("file_url"), // URL файла
-  metadata: json("metadata"), // дополнительная метаинформация
-  catalogId: integer("catalog_id")
-    .notNull()
-    .references(() => catalogs.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  position: integer("position").default(0), // порядок в каталоге
-  isPinned: boolean("is_pinned").default(false), // закрепленная заметка
-  isArchived: boolean("is_archived").default(false),
-  tags: text("tags").array(), // теги для поиска
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Теги для заметок (отдельная таблица для более гибкого поиска)
-export const tags = pgTable("tags", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  color: text("color").default("#6B7280"),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Связь многие-ко-многим между заметками и тегами
-export const noteTags = pgTable("note_tags", {
-  id: serial("id").primaryKey(),
-  noteId: integer("note_id")
-    .notNull()
-    .references(() => notes.id, { onDelete: "cascade" }),
-  tagId: integer("tag_id")
-    .notNull()
-    .references(() => tags.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+import { users } from "./schema/users";
+import { catalogs } from "./schema/catalogs";
+import { notes } from "./schema/notes";
+import { tags } from "./schema/tags";
+import { noteTags } from "./schema/noteTags";
 
 // ==================== RELATIONS (СВЯЗИ) ====================
 

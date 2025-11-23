@@ -1,6 +1,10 @@
 import { Bot, GrammyError, HttpError } from "grammy";
 import { Menu } from "@grammyjs/menu";
-import { db } from "./db/db.js";
+import { config } from "dotenv";
+
+config();
+
+console.log("✅ Токен загружен!");
 
 const bot = new Bot(process.env.API_KEY || "");
 

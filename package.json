@@ -4,8 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon bot.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/bot.ts",
+    "build": "tsc",
+    "start": "node dist/bot.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:drop": "drizzle-kit drop"
   },
   "keywords": [],
   "author": "",
