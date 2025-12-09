@@ -1,17 +1,7 @@
-import { Bot, Context } from "grammy";
+import { Bot, InlineKeyboard } from "grammy";
 import { CatalogService } from "../../services/CatalogService";
 import { mainKeyboard, getIconsKeyboard, cancelKeyboard } from "../keyboards";
-
-interface SessionData {
-  creatingCatalog?: {
-    step: "waiting_name" | "waiting_icon";
-    name?: string;
-  };
-}
-
-type MyContext = Context & {
-  session: SessionData;
-};
+import { MyContext } from "../../types";
 
 export function setupCatalogHandlers(bot: Bot<MyContext>) {
   const catalogService = new CatalogService();
@@ -23,7 +13,7 @@ export function setupCatalogHandlers(bot: Bot<MyContext>) {
 
     await ctx.reply(
       "📝 *Введите название для нового каталога:*\n\n" +
-        "Можно использовать emoji в названии 🎯",
+        "используете emoji для удобства 🎯",
       {
         parse_mode: "Markdown",
         reply_markup: cancelKeyboard,
@@ -31,7 +21,7 @@ export function setupCatalogHandlers(bot: Bot<MyContext>) {
     );
   });
 
-  bot.on("message:text", async (ctx) => {
+  bot.on("message:text", async (ctx, next) => {
     if (ctx.session.creatingCatalog?.step === "waiting_name") {
       const catalogName = ctx.message.text.trim();
 
@@ -55,6 +45,8 @@ export function setupCatalogHandlers(bot: Bot<MyContext>) {
           reply_markup: getIconsKeyboard(),
         }
       );
+    } else {
+      await next();
     }
   });
 
@@ -137,13 +129,45 @@ export function setupCatalogHandlers(bot: Bot<MyContext>) {
       return;
     }
 
-    const catalogsList = userCatalogs
-      .map((catalog) => `${catalog.emoji || "📁"} ${catalog.name}`)
-      .join("\n");
-
-    await ctx.reply(`📂 *Ваши каталоги:*\n\n${catalogsList}`, {
-      parse_mode: "Markdown",
-      reply_markup: mainKeyboard,
+    const keyboard = new InlineKeyboard();
+    userCatalogs.forEach((catalog) => {
+      keyboard
+        .text(
+          `${catalog.emoji || "📁"} ${catalog.name}`,
+          `view_catalog_${catalog.id}`
+        )
+        .row();
     });
+
+    await ctx.reply("📂 *Ваши каталоги:*\n\nВыберите каталог для просмотра:", {
+      parse_mode: "Markdown",
+      reply_markup: keyboard,
+    });
+  });
+
+  bot.callbackQuery("back_to_catalogs", async (ctx) => {
+    const userCatalogs = await catalogService.getUserCatalogs(
+      ctx.from!.id.toString()
+    );
+
+    const keyboard = new InlineKeyboard();
+    userCatalogs.forEach((catalog) => {
+      keyboard
+        .text(
+          `${catalog.emoji || "📁"} ${catalog.name}`,
+          `view_catalog_${catalog.id}`
+        )
+        .row();
+    });
+
+    await ctx.editMessageText(
+      "📂 *Ваши каталоги:*\n\nВыберите каталог для просмотра:",
+      {
+        parse_mode: "Markdown",
+        reply_markup: keyboard,
+      }
+    );
+
+    await ctx.answerCallbackQuery();
   });
 }
