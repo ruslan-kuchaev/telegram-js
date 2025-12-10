@@ -3,6 +3,7 @@ import { MyContext } from "../../../types";
 import { noteService, catalogService } from "../../../services";
 import { mainKeyboard } from "../../keyboards";
 import { processMediaGroup } from "./mediaGroup";
+import { Message } from "grammy/types";
 
 async function savePhotoNote(ctx: MyContext): Promise<void> {
   const catalogId = ctx.session.creatingNote!.catalogId!;
@@ -12,7 +13,6 @@ async function savePhotoNote(ctx: MyContext): Promise<void> {
     await ctx.reply("❌ Ошибка: сообщение с фото не найдено");
     return;
   }
-
 
   if (message.media_group_id) {
     handleMediaGroup(ctx, message, catalogId);
@@ -52,27 +52,33 @@ async function savePhotoNote(ctx: MyContext): Promise<void> {
   }
 }
 
-function handleMediaGroup(ctx: MyContext, message: any, catalogId: number): void {
+function handleMediaGroup(
+  ctx: MyContext,
+  message: Message,
+  catalogId: number
+): void {
   const groupId = message.media_group_id;
-  
+
   if (!ctx.session.mediaGroups) {
     ctx.session.mediaGroups = {};
   }
 
-  // Добавляем сообщение в группу
+  if (!groupId) {
+    return;
+  }
+
   if (!ctx.session.mediaGroups[groupId]) {
     ctx.session.mediaGroups[groupId] = {
       messages: [],
       catalogId,
       timer: setTimeout(() => {
         processMediaGroup(ctx, groupId, catalogId);
-      }, 300), // Короткое ожидание
+      }, 300),
     };
   }
 
   ctx.session.mediaGroups[groupId].messages.push(message);
-  
-  // Сбрасываем таймер при каждом новом сообщении
+
   clearTimeout(ctx.session.mediaGroups[groupId].timer);
   ctx.session.mediaGroups[groupId].timer = setTimeout(() => {
     processMediaGroup(ctx, groupId, catalogId);

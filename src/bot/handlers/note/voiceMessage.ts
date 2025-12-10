@@ -40,8 +40,6 @@ async function saveVoiceNote(ctx: MyContext): Promise<void> {
       reply_markup: mainKeyboard,
       reply_to_message_id: message.message_id,
     });
-
-
   } catch (error) {
     console.error("Error creating voice note:", error);
     await ctx.reply("❌ Ошибка при создании заметки");
