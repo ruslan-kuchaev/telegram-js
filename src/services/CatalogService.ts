@@ -4,6 +4,11 @@ import { catalogs } from "../db/schema/catalogs";
 import { users } from "../db/schema/users";
 import { Catalog, InsertCatalog } from "../db/schema";
 
+export interface UserCatalog {
+  telegramId: string;
+  username?: string;
+  catalogs: Catalog[];
+}
 export class CatalogService {
   async createCatalog(data: InsertCatalog): Promise<Catalog> {
     const [catalog] = await db.insert(catalogs).values(data).returning();
@@ -40,12 +45,7 @@ export class CatalogService {
     return user;
   }
 
-  async getOrCreateUser(
-    telegramId: string,
-    username?: string,
-    firstName?: string,
-    lastName?: string
-  ) {
+  async getOrCreateUser(telegramId: string, username?: string) {
     let user = await this.findUserByTelegramId(telegramId);
 
     if (!user) {

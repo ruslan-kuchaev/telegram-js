@@ -9,7 +9,7 @@ export interface SessionData {
     step: "selecting_catalog" | "waiting_content";
     catalogId?: number;
   };
-  botMessages?: number[]; // ID сообщений бота для удаления
+  botMessages?: number[];
   mediaGroups?: {
     [groupId: string]: {
       messages: any[];

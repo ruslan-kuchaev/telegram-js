@@ -1,8 +1,8 @@
 import { db } from "../db/db";
 import { eq, and, desc } from "drizzle-orm";
 import { notes } from "../db/schema/notes";
-import { users } from "../db/schema/users";
 import { Note, InsertNote } from "../db/schema";
+
 
 export class NoteService {
   async createNote(data: InsertNote): Promise<Note> {

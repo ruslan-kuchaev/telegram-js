@@ -4,12 +4,10 @@ import { users } from "../db/schema/users";
 import { catalogs } from "../db/schema/catalogs";
 import { notes } from "../db/schema/notes";
 import { tags } from "../db/schema/tags";
-import { noteTags } from "../db/schema/noteTags";
 
 export class UserService {
   async deleteAllUserData(telegramId: string): Promise<boolean> {
     try {
-      // Находим пользователя
       const [user] = await db
         .select()
         .from(users)
@@ -19,7 +17,6 @@ export class UserService {
         return false;
       }
 
-      // Удаляем все связанные данные (благодаря CASCADE в схеме, все удалится автоматически)
       await db.delete(users).where(eq(users.id, user.id));
 
       return true;

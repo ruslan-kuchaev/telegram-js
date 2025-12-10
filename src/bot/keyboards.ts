@@ -1,4 +1,6 @@
 import { Keyboard, InlineKeyboard } from "grammy";
+import { UserCatalog } from "../services/CatalogService";
+import { Note } from "../db/schema";
 
 export const catalogIcons = [
   "📁",
@@ -35,7 +37,6 @@ export const catalogIcons = [
 
 export type CatalogIcon = (typeof catalogIcons)[number];
 
-// Главное меню
 export const mainKeyboard = new Keyboard()
   .text("📁 Мои каталоги")
   .text("📝 Создать заметку")
@@ -44,7 +45,6 @@ export const mainKeyboard = new Keyboard()
   .text("🗺️ Карта заметок")
   .resized();
 
-// Клавиатура выбора иконок
 export function getIconsKeyboard(page: number = 0): InlineKeyboard {
   const itemsPerPage = 8;
   const startIndex = page * itemsPerPage;
@@ -85,8 +85,41 @@ export function getIconsKeyboard(page: number = 0): InlineKeyboard {
   return keyboard;
 }
 
-// Клавиатура отмены
 export const cancelKeyboard = new InlineKeyboard().text(
   "🔙 Отмена",
   "cancel_create_catalog"
 );
+
+export function choiceCatalogKeybards({
+  catalogs,
+}: {
+  catalogs: UserCatalog["catalogs"];
+}): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+
+  catalogs.forEach((catalog) => {
+    keyboard.text(
+      `${catalog.emoji || "📁"} ${catalog.name}`,
+      `select_catalog_${catalog.id}`
+    );
+    keyboard.row();
+  });
+
+  keyboard.text("🔙 Назад", "back_to_main");
+
+  return keyboard;
+}
+
+export function viewNoteKeyboard({ notes }: { notes: Note[] }): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+
+  notes.forEach((note) => {
+    const icon =
+      note.type === "image" ? "🖼️" : note.type === "mixed" ? "🎤" : "📝";
+    keyboard.text(`${icon} ${note.title}`, `view_note_${note.id}`).row();
+  });
+
+  keyboard.text("🔙 Назад", "back_to_catalogs");
+
+  return keyboard;
+}
